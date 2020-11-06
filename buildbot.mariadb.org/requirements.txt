@@ -1,4 +1,6 @@
 buildbot
 docker
 flask
+libvirt-python
+mysqlclient
 txrequests

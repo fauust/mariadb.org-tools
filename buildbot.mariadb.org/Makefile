@@ -15,8 +15,8 @@ install: ## Install all necessary tools
 
 venv: ## Create python3 venv if it does not exists
 	[[ -d $(VENV_DIR) ]] || $(shell command -v python3) -m venv $(VENV_DIR)
-	# support multiple version of python
-	[[ -f $(VENV_DIR)/lib/python3.8 ]] || cd $(VENV_DIR)/lib/ && ln -s python3.7 python3.8
+	@echo -e "\n--> You should now activate the python3 venv with:"
+	@echo -e "source $(VENV_DIR)/bin/activate"
 
 install-pip-packages: ## Install python3 requirements
 	$(info --> Install requirements via `pip3`)
