@@ -1,0 +1,77 @@
+---
+name: docker build
+
+on:
+  push:
+    paths:
+      - .github/workflows/dockerbuild.yml
+      - buildbot.mariadb.org/dockerfiles
+
+jobs:
+  generate-matrix:
+    name: generate matrix for build
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check changed files
+        id: diff
+        run: |
+          # See https://github.community/t/check-pushed-file-changes-with-git-diff-tree-in-github-actions/17220/10
+          if [ $GITHUB_BASE_REF ]; then
+            # Pull Request
+            git fetch origin $GITHUB_BASE_REF --depth=1
+            export DIFF=$(git diff --name-only origin/$GITHUB_BASE_REF $GITHUB_SHA | grep "buildbot.mariadb.org/dokerfiles")
+            echo "Diff between origin/$GITHUB_BASE_REF and $GITHUB_SHA"
+          else
+            # Push
+            git fetch origin ${{ github.event.before }} --depth=1
+            export DIFF=$(git diff --name-only ${{ github.event.before }} $GITHUB_SHA | grep "buildbot.mariadb.org/dokerfiles")
+            echo "Diff between ${{ github.event.before }} and $GITHUB_SHA"
+          fi
+          echo "$DIFF"
+          # Escape newlines (replace \n with %0A)
+          echo "::set-output name=diff::$(echo "$DIFF" | sed ':a;N;$!ba;s/\n/%0A/g')"
+      - name: Set matrix for build
+        id: set-matrix
+        run: |
+          DIFF="${{ steps.diff.outputs.diff }}"
+          JSON="{\"dockerfile\":["
+
+          while read dockerfile; do
+            # filter some architecture
+            if $(echo $dockerfile | grep -qE "aarch|rhel|sles|windows|ppc"); then
+              continue
+            else
+              JSONline="\"$dockerfile\","
+              JSON="$JSON$JSONline"
+            fi
+          done <<< $DIFF
+
+          # Remove last "," and add closing brackets
+          JSON="${JSON%?}"
+          JSON="$JSON]}"
+          echo $JSON
+
+          # Set output
+          echo "::set-output name=matrix::$(echo "$JSON")"
+
+  build:
+    name: build "${{ matrix.dockerfile }}"
+    needs: generate-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{fromJson(needs.generate-matrix.outputs.matrix)}}
+    steps:
+      - uses: actions/checkout@v2
+      # - name: lint/check ${{ matrix.dockerfile }}
+      #   id: lint
+      #   run: |
+      #     cd buildbot.mariadb.org/dockerfiles
+      #     docker run -i -v $(pwd):/mnt -w /mnt hadolint/hadolint:latest hadolint ${{ matrix.dockerfile }}
+      - name: build ${{ matrix.dockerfile }}
+        id: build
+        run: |
+          cd buildbot.mariadb.org/dockerfiles
+          echo "docker build . -f ${{ matrix.dockerfile }} -t bb:${{ matrix.dockerfile }}"

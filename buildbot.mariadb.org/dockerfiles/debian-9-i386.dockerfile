@@ -1,5 +1,5 @@
 #
-# Builbot worker for building MariaDB
+# Buildbot worker for building MariaDB
 #
 # Provides a base Debian image with latest buildbot worker installed
 # and MariaDB build dependencies

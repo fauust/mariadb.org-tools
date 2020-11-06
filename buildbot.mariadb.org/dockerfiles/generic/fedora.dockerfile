@@ -1,5 +1,5 @@
 #
-# Builbot worker for building MariaDB
+# Buildbot worker for building MariaDB
 #
 # Provides a base Fedora image with latest buildbot worker installed
 # and MariaDB build dependencies
@@ -34,7 +34,8 @@ RUN pip install buildbot-worker && \
 # Test runs produce a great quantity of dead grandchild processes.  In a
 # non-docker environment, these are automatically reaped by init (process 1),
 # so we need to simulate that here.  See https://github.com/Yelp/dumb-init
-RUN curl -Lo /tmp/dumb.rpm http://rpmfind.net/linux/fedora/linux/releases/30/Everything/aarch64/os/Packages/d/dumb-init-1.1.3-17.fc30.aarch64.rpm && dnf -y localinstall /tmp/dumb.rpm
+RUN curl -Lo /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_amd64 && \
+    chmod +x /usr/local/bin/dumb-init
 
 USER buildbot
-CMD ["dumb-init", "twistd", "--pidfile=", "-ny", "buildbot.tac"]
+CMD ["/usr/local/bin/dumb-init", "twistd", "--pidfile=", "-ny", "buildbot.tac"]

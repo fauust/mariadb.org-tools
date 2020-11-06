@@ -1,0 +1,27 @@
+---
+name: install macos pkg
+
+on:
+  push:
+    paths:
+      - .github/workflows/macosx_install.yml
+
+jobs:
+  install-pkg:
+    strategy:
+      matrix:
+        os: ["macos-10.15", "macos-11.0"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: get pkg
+        run: |
+          wget https://ci.mariadb.org/mariadb-10.5.7-osx10.15-x86_64-no-symlinks.pkg
+      - name: install pkg
+        run: |
+          sudo installer -pkg mariadb-10.5.7-osx10.15-x86_64-no-symlinks.pkg -target /
+      - name: check mariadb
+        run: |
+          export mariadb_cmd="/usr/local/mariadb/mariadb-10.5.7-osx10.15-x86_64/bin/mariadb"
+          $mariadb_cmd --skip-column-names -Bse "select @@version, @@version_comment"
+          $mariadb_cmd -Bse 'SHOW DATABASES;'
+          $mariadb_cmd -Bse "drop database test; create database test; use test; create table t(a int primary key) engine=innodb; insert into t values (1); select * from t; drop table t; drop database test;"

@@ -1,17 +1,18 @@
 #
 # Buildbot worker for building MariaDB
 #
-# Provides a base Ubuntu image with latest buildbot worker installed
+# Provides a base Debian image with latest buildbot worker installed
 # and MariaDB build dependencies
 
-FROM       ubuntu:20.04
+ARG base_image=debian:10
+FROM "$base_image"
 LABEL maintainer="MariaDB Buildbot maintainers"
 
 # This will make apt-get install without question
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Enable apt sources
-RUN sed -i~orig -e 's/# deb-src/deb-src/' /etc/apt/sources.list
+RUN cat /etc/apt/sources.list | sed 's/^deb /deb-src /g' >> /etc/apt/sources.list
 
 # Install updates and required packages
 RUN apt-get update && \
@@ -19,15 +20,17 @@ RUN apt-get update && \
     apt-get -y build-dep -q mariadb-server && \
     apt-get -y install -q \
     apt-utils build-essential python-dev sudo git \
-    devscripts equivs libcurl4-openssl-dev flex \
+    devscripts equivs libcurl4-openssl-dev \
     ccache python3 python3-pip curl wget libssl-dev libzstd-dev \
     libevent-dev dpatch gawk gdb libboost-dev libcrack2-dev \
     libjudy-dev libnuma-dev libsnappy-dev libxml2-dev \
-    unixodbc-dev uuid-dev fakeroot iputils-ping dh-exec libpcre2-dev \
-    libarchive-dev libedit-dev liblz4-dev dh-systemd flex libboost-atomic-dev \ 
-    libboost-chrono-dev libboost-date-time-dev libboost-filesystem-dev \ 
-    libboost-regex-dev libboost-system-dev libboost-thread-dev \
-    gcc-10 g++-10
+    unixodbc-dev uuid-dev fakeroot iputils-ping
+
+RUN apt-get -y install dh-systemd flex libboost-atomic-dev \
+    libboost-chrono-dev libboost-date-time-dev \
+    libboost-filesystem-dev libboost-regex-dev \
+    libboost-system-dev libboost-thread-dev \
+    libedit-dev libpcre2-dev
 
 # Create buildbot user
 RUN useradd -ms /bin/bash buildbot && \
@@ -47,7 +50,7 @@ RUN pip3 install buildbot-worker && \
 
 # Test runs produce a great quantity of dead grandchild processes.  In a
 # non-docker environment, these are automatically reaped by init (process 1),
-# so we need to simulate that here.  See https://github.com/Yelp/dumb-init
+# so we need to simulate that here. See https://github.com/Yelp/dumb-init
 RUN curl https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_amd64.deb -Lo /tmp/init.deb && dpkg -i /tmp/init.deb
 
 USER buildbot
