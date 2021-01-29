@@ -12,7 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check
-        uses: ruzickap/action-my-broken-link-checker@v1.0.3
-        with:
-          url: http://kb-mirror.mariadb.com/kb/en/library/documentation
-          cmd_params: "--color=always --exclude 'https://mariadb.com' --exclude 'https://twitter.com' --exclude 'https://www.linkedin.com' --exclude 'http://kb-mirror.mariadb.com/kb/en/+questions/' --exclude 'http://kb-mirror.mariadb.com/kb/en/library/mariadb-server/changelogs' -c 100 -t 30"
+        run: |
+          docker run raviqqe/muffet --color=always -c 100 -t 30 \
+            --exclude "https://mariadb.com" \
+            --exclude "https://twitter.com" \
+            --exclude "https://www.linkedin.com" \
+            --exclude "http://kb-mirror.mariadb.com/kb/en/+questions/" \
+            --exclude "http://kb-mirror.mariadb.com/kb/en/library/mariadb-server/changelogs" \
+            http://kb-mirror.mariadb.com/kb/en/library/documentation
