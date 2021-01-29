@@ -1,0 +1,17 @@
+---
+name: KB broken link checker
+
+on:
+  schedule:
+    - cron: "0 0 * * 0"
+
+jobs:
+  kb-broken-link-checker:
+    name: Check broken links
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check
+        uses: ruzickap/action-my-broken-link-checker@v1
+        with:
+          url: http://kb-mirror.mariadb.com/kb/en/library/documentation/
+          cmd_params: "--color=always --exclude https://mariadb.com --exclude https://twitter.com --exclude https://www.linkedin.com --exclude http://kb-mirror.mariadb.com/kb/en/+questions/ -c 100 -t 30"
