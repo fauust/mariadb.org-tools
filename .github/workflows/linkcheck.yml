@@ -2,6 +2,7 @@
 name: KB broken link checker
 
 on:
+  push:
   schedule:
     - cron: "0 0 * * 0"
 
