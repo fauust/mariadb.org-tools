@@ -3,8 +3,8 @@ name: KB link checker
 
 on:
   push:
-  schedule:
-    - cron: "0 0 * * 0"
+  # schedule:
+  #   - cron: "0 0 * * 0"
 
 jobs:
   kb-broken-link-checker:
@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Check
         run: |
-          docker run raviqqe/muffet --color=always -c 100 -t 30 \
+          docker run raviqqe/muffet --color=always -c 50 -t 40 \
             --exclude "https://mariadb.com" \
             --exclude "https://twitter.com" \
             --exclude "https://www.linkedin.com" \
