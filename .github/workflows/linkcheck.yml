@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Check
         run: |
-          docker run raviqqe/muffet --color=always -c 10 -t 100 \
+          docker run raviqqe/muffet --color=always -c 8 -t 200 \
             --exclude "https://mariadb.com" \
             --exclude "https://twitter.com" \
             --exclude "https://www.linkedin.com" \
